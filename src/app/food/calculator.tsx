@@ -12,6 +12,7 @@ import { analyzeBodyweight, BODY_GOAL_LABEL, targetConflict, type BodyGoal } fro
 import { parseNumberInput } from '@/features/logging/prefill';
 import { customTargets } from '@/features/nutrition/plan';
 import { useFoodTargets } from '@/hooks/useFood';
+import { useLifestyle } from '@/hooks/useLifestyle';
 import { formatNumber } from '@/lib/format';
 import { fromDisplayWeight, toDisplayWeight } from '@/lib/units';
 import { useNutrition } from '@/stores/useNutrition';
@@ -40,6 +41,7 @@ export default function CalculatorScreen() {
   const profile = useProfile((s) => s.profile);
   const savedGoal = useProfile((s) => s.bodyGoal);
   const savedLifestyle = useProfile((s) => s.lifestyle ?? 'sitting');
+  const fromSteps = useLifestyle();
   const targetWeightKg = useProfile((s) => s.targetWeightKg);
   const weighInDay = useProfile((s) => s.weighInDay ?? 1);
   const setBodyGoal = useProfile((s) => s.setBodyGoal);
@@ -50,7 +52,9 @@ export default function CalculatorScreen() {
   const [goal, setGoal] = useState<BodyGoal>(
     savedGoal ?? (profile?.goal === 'fat_loss' ? 'lose_fat' : profile?.goal === 'muscle' ? 'gain_muscle' : 'recomp'),
   );
-  const [lifestyle, setLifestyle] = useState<Lifestyle>(savedLifestyle);
+  const [picked, setLifestyle] = useState<Lifestyle>(savedLifestyle);
+  // Measured steps beat a guess: when there are enough, they decide.
+  const lifestyle = fromSteps.avgSteps !== null ? fromSteps.lifestyle : picked;
   const [weight, setWeight] = useState(formatNumber(toDisplayWeight(profile?.weightKg ?? 70, unit), 1));
   const [days, setDays] = useState(profile?.daysPerWeek ?? 3);
   const [mode, setMode] = useState<'liftmark' | 'own'>(nutrition.customTarget ? 'own' : 'liftmark');
@@ -94,7 +98,7 @@ export default function CalculatorScreen() {
     if (!canSave) return;
     useProfile.setState({ profile: stats });
     const keepTarget = targetConflict(goal, targetWeightKg, weightKg) ? null : targetWeightKg;
-    setBodyGoal(goal, keepTarget, weighInDay, lifestyle);
+    setBodyGoal(goal, keepTarget, weighInDay, picked);
     nutrition.setUseMeasured(basis === 'measured');
     nutrition.setCustomTarget(mode === 'own' ? { kcal: Math.round(ownK), proteinG: Math.round(ownP) } : null);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
@@ -183,15 +187,24 @@ export default function CalculatorScreen() {
             <Text variant="caption" style={styles.label}>
               OUTSIDE THE GYM, YOU'RE…
             </Text>
-            {(Object.keys(LIFESTYLE_LABEL) as Lifestyle[]).map((l) => (
+            {fromSteps.avgSteps !== null ? (
               <ChoiceCard
-                key={l}
-                title={LIFESTYLE_LABEL[l].title}
-                subtitle={LIFESTYLE_LABEL[l].subtitle}
-                selected={lifestyle === l}
-                onPress={() => setLifestyle(l)}
+                title={LIFESTYLE_LABEL[lifestyle].title}
+                subtitle={`From your steps: about ${fmt(fromSteps.avgSteps)} a day this week. It updates as you move more or less.`}
+                selected
+                onPress={() => {}}
               />
-            ))}
+            ) : (
+              (Object.keys(LIFESTYLE_LABEL) as Lifestyle[]).map((l) => (
+                <ChoiceCard
+                  key={l}
+                  title={LIFESTYLE_LABEL[l].title}
+                  subtitle={LIFESTYLE_LABEL[l].subtitle}
+                  selected={lifestyle === l}
+                  onPress={() => setLifestyle(l)}
+                />
+              ))
+            )}
           </View>
 
           <Card style={{ gap: space.md }}>

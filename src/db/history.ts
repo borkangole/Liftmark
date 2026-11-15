@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNotNull, lte, max } from 'drizzle-orm';
+import { and, asc, count, eq, gte, inArray, isNotNull, lte, max } from 'drizzle-orm';
 
 import { findPrSets, type HistoryRow } from '@/features/history/history';
 import { loadTypeOf, scoreContext, setScore, type LoadType } from '@/features/progression';
@@ -118,3 +118,31 @@ export const renameWorkout = (workoutId: number, name: string) =>
   db.update(workouts).set({ name: name.trim() || null }).where(eq(workouts.id, workoutId));
 
 export const deleteWorkout = (workoutId: number) => db.delete(workouts).where(eq(workouts.id, workoutId));
+
+/** Finished workouts that have at least one set, for the year calendar. */
+export const fetchWorkoutDays = () =>
+  db
+    .selectDistinct({ id: workouts.id, name: workouts.name, startedAt: workouts.startedAt, endedAt: workouts.endedAt })
+    .from(workouts)
+    .innerJoin(sets, eq(sets.workoutId, workouts.id))
+    .where(isNotNull(workouts.endedAt))
+    .orderBy(asc(workouts.startedAt));
+
+/** Working sets per exercise per finished workout since `since`, for recovery-aware split switching. */
+export async function fetchRecentWork(since: Date) {
+  const rows = await db
+    .select({
+      at: workouts.startedAt,
+      name: exercises.name,
+      muscleGroup: exercises.muscleGroup,
+      primaryMuscle: exercises.primaryMuscle,
+      targetMuscles: exercises.targetMuscles,
+      sets: count(sets.id),
+    })
+    .from(sets)
+    .innerJoin(workouts, eq(sets.workoutId, workouts.id))
+    .innerJoin(exercises, eq(sets.exerciseId, exercises.id))
+    .where(and(isNotNull(workouts.endedAt), gte(workouts.startedAt, since), eq(sets.isWarmup, false)))
+    .groupBy(workouts.id, exercises.id);
+  return rows;
+}

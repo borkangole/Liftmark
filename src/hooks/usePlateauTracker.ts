@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 
 import { planBroken } from '@/features/progression';
 import { usePlateaus } from '@/stores/usePlateaus';
+import { useReminders } from '@/stores/useReminders';
 import { useProgressOverview } from './useProgressOverview';
 
 const DAY = 86_400_000;
@@ -12,6 +13,18 @@ const GIVE_UP_DAYS = 70;
 export function usePlateauTracker() {
   const { lifts } = useProgressOverview(null);
   const plans = usePlateaus((s) => s.plans);
+
+  // Each lift that starts stalling gets one heads-up (if plateau reminders are on).
+  useEffect(() => {
+    useReminders.getState().observePlateaus(
+      lifts.map((l) => ({
+        exerciseId: l.exerciseId,
+        name: l.name,
+        state:
+          l.trend.status === 'stalling' || l.trend.status === 'regressing' ? 'stuck' : l.trend.slowing ? 'slowing' : null,
+      })),
+    );
+  }, [lifts]);
 
   useEffect(() => {
     const { breakPlan, stopPlan } = usePlateaus.getState();

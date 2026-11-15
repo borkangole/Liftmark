@@ -2,7 +2,7 @@
   "expo": {
     "name": "Liftmark",
     "slug": "liftmark",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -29,7 +29,21 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.RECORD_AUDIO"
+      ],
+      "permissions": [
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.health.WRITE_EXERCISE",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.health.WRITE_EXERCISE"
       ]
     },
     "web": {
@@ -49,7 +63,30 @@
           "backgroundColor": "#0E0F12"
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#C6F432"
+        }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Liftmark reads your steps, sleep and body weight to set your calorie target, show your recovery and log weigh-ins from your scale.",
+          "NSHealthUpdateUsageDescription": "Liftmark saves your finished workouts to Apple Health so they count toward your activity.",
+          "background": false
+        }
+      ],
+      "react-native-health-connect",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ]
     ],
     "scheme": "liftmark",
     "experiments": {
@@ -58,7 +95,19 @@
     "description": "Free, offline-first workout tracker that tells you whether you are getting stronger and what to do next session.",
     "githubUrl": "https://github.com/borkangole/Repster---Your-progress-partner",
     "updates": {
-      "fallbackToCacheTimeout": 0
-    }
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/2e701b52-2a9f-4c6e-a890-0db96981247f"
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "2e701b52-2a9f-4c6e-a890-0db96981247f"
+      }
+    },
+    "owner": "fazermb"
   }
 }

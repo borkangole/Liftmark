@@ -1,8 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useState, type ReactNode } from 'react';
+import { ActivityIndicator, Alert, AppState, Linking, Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { LiftmarkIcon } from '@/components/brand/LiftmarkIcon';
 import { FadeIn } from '@/components/motion/FadeIn';
@@ -11,7 +11,15 @@ import { BMI_LABEL, bmiCategory, calculateBmi, feetInchesFromCm } from '@/featur
 import { GOAL_LABEL, LEVEL_LABEL } from '@/features/profile/recommend';
 import { applyTheme, exportCsv, resetAllData } from '@/lib/dataActions';
 import { formatNumber, formatWeight } from '@/lib/format';
+import {
+  openNotificationSettings,
+  restAlertPermission,
+  restAlertsSupported,
+  type AlertPermission,
+} from '@/lib/restAlert';
 import { useProfile } from '@/stores/useProfile';
+import { useHealth } from '@/stores/useHealth';
+import { useReminders } from '@/stores/useReminders';
 import { useSettings } from '@/stores/useSettings';
 import { BRAND, colors, radius, space, themePreference, type ThemePreference } from '@/theme/tokens';
 
@@ -27,6 +35,7 @@ const REST_OPTIONS = [
 
 export default function SettingsScreen() {
   const { unit, setUnit, restMode, setRestMode, defaultRestSeconds, setDefaultRest } = useSettings();
+  const healthConnected = useHealth((s) => s.connected);
   const [exporting, setExporting] = useState(false);
   const profile = useProfile((s) => s.profile);
 
@@ -201,11 +210,29 @@ export default function SettingsScreen() {
               options={REST_OPTIONS}
             />
           )}
+          {restAlertsSupported && <RestAlertRow />}
           <Row
             icon="school-outline"
             title="Why these rest times?"
             subtitle="The studies behind the numbers"
             onPress={() => router.push('/rest-info')}
+          />
+        </Section>
+      </FadeIn>
+
+      <FadeIn delay={175}>
+        <Section title="Reminders">
+          <RemindersRow />
+        </Section>
+      </FadeIn>
+
+      <FadeIn delay={185}>
+        <Section title="Health & watch">
+          <Row
+            icon="watch-outline"
+            title="Steps, sleep and weigh-ins"
+            subtitle={healthConnected ? 'Connected' : 'Connect your watch or smart scale'}
+            onPress={() => router.push('/health')}
           />
         </Section>
       </FadeIn>
@@ -274,6 +301,61 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
       {children}
       {hint && <Text variant="caption">{hint}</Text>}
     </View>
+  );
+}
+
+function RemindersRow() {
+  const enabled = useReminders((s) => s.settings.enabled);
+  const count = Object.values(enabled).filter(Boolean).length;
+  return (
+    <Row
+      icon="alarm-outline"
+      title="Reminders"
+      subtitle={count === 0 ? 'All off' : `${count} on · workouts, food and weigh-ins`}
+      onPress={() => router.push('/reminders')}
+    />
+  );
+}
+
+/** On/off for the "rest's over" notification, with a way out when the phone has blocked it. */
+function RestAlertRow() {
+  const enabled = useSettings((s) => s.restAlerts);
+  const setEnabled = useSettings((s) => s.setRestAlerts);
+  const [permission, setPermission] = useState<AlertPermission>('undetermined');
+
+  useEffect(() => {
+    const check = () => restAlertPermission(false).then(setPermission).catch(() => {});
+    check();
+    const sub = AppState.addEventListener('change', (state) => state === 'active' && check());
+    return () => sub.remove();
+  }, []);
+
+  const toggle = async (on: boolean) => {
+    setEnabled(on);
+    if (on) setPermission(await restAlertPermission(true).catch(() => 'denied' as const));
+  };
+
+  const blocked = enabled && permission === 'denied';
+  return (
+    <Row
+      icon={blocked ? 'notifications-off-outline' : 'notifications-outline'}
+      title="Alert when rest is over"
+      subtitle={
+        blocked
+          ? 'Notifications are off for Liftmark. Tap to turn them on in your phone’s settings.'
+          : 'Buzzes even when your phone is locked'
+      }
+      onPress={blocked ? openNotificationSettings : () => toggle(!enabled)}
+      trailing={
+        <Switch
+          value={enabled && !blocked}
+          onValueChange={blocked ? () => openNotificationSettings() : toggle}
+          trackColor={{ true: colors.volt, false: colors.surfaceRaised }}
+          thumbColor={colors.chalk}
+          accessibilityLabel="Alert when rest is over"
+        />
+      }
+    />
   );
 }
 

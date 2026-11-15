@@ -19,6 +19,7 @@ import type { DayTotal } from '@/features/nutrition/suggest';
 import { useNutrition } from '@/stores/useNutrition';
 import { useProfile } from '@/stores/useProfile';
 import { useBodyweight } from './useBodyweight';
+import { useLifestyle } from './useLifestyle';
 import { useLiveTables } from './useLiveTables';
 
 const FOOD_TABLES = ['food_entries'];
@@ -74,7 +75,7 @@ export const useTrainedOn = (day: string) => useLiveTables(() => trainedOn(day),
  */
 export function useFoodTargets() {
   const profile = useProfile((s) => s.profile);
-  const lifestyle = useProfile((s) => s.lifestyle ?? 'sitting');
+  const { lifestyle } = useLifestyle();
   const { goal, analysis, entries: weighIns, calories } = useBodyweight();
   const customTarget = useNutrition((s) => s.customTarget);
   const useMeasured = useNutrition((s) => s.useMeasured);

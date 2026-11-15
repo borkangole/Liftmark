@@ -13,9 +13,12 @@ interface SettingsState {
   /** 'smart' = rest picked per exercise from the evidence; 'fixed' = `defaultRestSeconds` for everything. */
   restMode: RestMode;
   defaultRestSeconds: number;
+  /** Notify when rest is over, even with the phone locked. */
+  restAlerts: boolean;
   setUnit: (unit: WeightUnit) => void;
   setRestMode: (mode: RestMode) => void;
   setDefaultRest: (seconds: number) => void;
+  setRestAlerts: (on: boolean) => void;
 }
 
 /** Synchronous key-value storage, so settings are ready on the very first render. */
@@ -33,9 +36,11 @@ export const useSettings = create<SettingsState>()(
       unit: 'kg',
       restMode: 'smart',
       defaultRestSeconds: 120,
+      restAlerts: true,
       setUnit: (unit) => set({ unit }),
       setRestMode: (restMode) => set({ restMode }),
       setDefaultRest: (defaultRestSeconds) => set({ defaultRestSeconds }),
+      setRestAlerts: (restAlerts) => set({ restAlerts }),
     }),
     // Key predates the Liftmark rename; kept so saved settings survive the update.
     {

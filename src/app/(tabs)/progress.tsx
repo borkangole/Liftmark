@@ -176,8 +176,19 @@ function Overview() {
 
       <FadeIn delay={380}>
         <Card style={{ gap: space.lg }}>
-          <SectionHeader icon="calendar" title="Consistency" subtitle={`Last ${ACTIVITY_WEEKS} weeks`} />
-          <ConsistencyGrid activity={o.activity} start={o.activityStart} />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flex: 1 }}>
+              <SectionHeader icon="calendar" title="Consistency" subtitle={`Last ${ACTIVITY_WEEKS} weeks`} />
+            </View>
+            <Pressable accessibilityRole="link" onPress={() => router.push('/year')} hitSlop={8}>
+              <Text variant="label" accent style={{ fontWeight: '700' }}>
+                Full year ›
+              </Text>
+            </Pressable>
+          </View>
+          <Pressable accessibilityRole="link" accessibilityHint="Opens the full year" onPress={() => router.push('/year')}>
+            <ConsistencyGrid activity={o.activity} start={o.activityStart} />
+          </Pressable>
         </Card>
       </FadeIn>
 

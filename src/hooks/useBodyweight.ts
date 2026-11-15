@@ -7,6 +7,7 @@ import { formatNumber } from '@/lib/format';
 import { toDisplayWeight } from '@/lib/units';
 import { useProfile } from '@/stores/useProfile';
 import { useSettings } from '@/stores/useSettings';
+import { useLifestyle } from './useLifestyle';
 import { useLiveTables } from './useLiveTables';
 
 const TABLES = ['bodyweights'];
@@ -23,7 +24,7 @@ export function useBodyweight(lifts?: LiftSignal) {
   const targetKg = useProfile((s) => s.targetWeightKg);
   const profile = useProfile((s) => s.profile);
   const level = profile?.level;
-  const lifestyle = useProfile((s) => s.lifestyle ?? 'sitting');
+  const { lifestyle } = useLifestyle();
   const unit = useSettings((s) => s.unit);
 
   const analysis = useMemo(

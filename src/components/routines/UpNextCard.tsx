@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, View } from 'react-native';
 
@@ -88,6 +89,12 @@ export function UpNextCard({ upNext, onStart }: { upNext: UpNext; onStart: () =>
       </View>
 
       <Button title={`Start ${day.name}`} onPress={onStart} />
+      <PressableLink href="/routines/switch" hitSlop={8} style={styles.switch}>
+        <Ionicons name="swap-horizontal" size={16} color={colors.muted} />
+        <Text variant="label" style={{ fontWeight: '700' }}>
+          Different split or day
+        </Text>
+      </PressableLink>
     </View>
   );
 }
@@ -110,4 +117,5 @@ const styles = StyleSheet.create({
   cycleSeg: { flex: 1, height: 6, borderRadius: 3 },
   list: { gap: 2, marginVertical: space.sm },
   item: { flexDirection: 'row', alignItems: 'center', minHeight: 32, gap: space.md },
+  switch: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 40 },
 });

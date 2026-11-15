@@ -5,6 +5,9 @@ import type { ColorValue } from 'react-native';
 
 import { useCustomExerciseRegistry } from '@/hooks/useCustomExerciseRegistry';
 import { usePlateauTracker } from '@/hooks/usePlateauTracker';
+import { useHealthSync } from '@/hooks/useHealthSync';
+import { useReminderSync } from '@/hooks/useReminderSync';
+import { useSplitRotation } from '@/hooks/useSplitRotation';
 import { useProfile } from '@/stores/useProfile';
 import { colors } from '@/theme/tokens';
 
@@ -21,6 +24,9 @@ export default function TabsLayout() {
   const onboarded = useProfile((s) => s.completedAt !== null);
   useCustomExerciseRegistry();
   usePlateauTracker();
+  useReminderSync();
+  useSplitRotation();
+  useHealthSync();
   if (!onboarded) return <Redirect href="/onboarding" />;
 
   return (

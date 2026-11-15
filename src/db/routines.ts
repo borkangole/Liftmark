@@ -4,6 +4,7 @@ import { repRangeFor } from '@/features/profile/recommend';
 import type { Goal } from '@/features/profile/types';
 import { getPreset } from '@/features/routines/presets';
 import { nextRoutineDay } from '@/features/routines/nextDay';
+import { useSplit } from '@/stores/useSplit';
 import { db } from './client';
 import { exercises, routineDays, routineExercises, routines, workouts, type Exercise, type RoutineDay } from './schema';
 
@@ -98,21 +99,28 @@ export interface UpNext {
   day: RoutineDayDetail;
 }
 
-/** The active routine and the day after the one you trained last. */
-export async function getUpNext(): Promise<UpNext | null> {
+/**
+ * The active routine and the day after the one you trained last. A start day picked when switching
+ * splits wins until the routine's first workout after it.
+ */
+export async function getUpNext(start?: { routineId: number; dayId: number; setAt: string } | null): Promise<UpNext | null> {
   const [active] = await db.select().from(routines).where(eq(routines.isActive, true)).limit(1);
   if (!active) return null;
   const routine = await getRoutine(active.id);
   if (!routine || routine.days.length === 0) return null;
 
   const [last] = await db
-    .select({ dayId: workouts.routineDayId })
+    .select({ dayId: workouts.routineDayId, startedAt: workouts.startedAt })
     .from(workouts)
     .innerJoin(routineDays, eq(workouts.routineDayId, routineDays.id))
     .where(and(eq(routineDays.routineId, routine.id), isNotNull(workouts.endedAt)))
     .orderBy(desc(workouts.startedAt))
     .limit(1);
 
+  if (start && start.routineId === routine.id && (!last || last.startedAt.getTime() < Date.parse(start.setAt))) {
+    const picked = routine.days.find((d) => d.id === start.dayId);
+    if (picked) return { routine, day: picked };
+  }
   const day = nextRoutineDay(routine.days, last?.dayId ?? null);
   return day ? { routine, day } : null;
 }
@@ -126,8 +134,8 @@ export async function setActiveRoutine(routineId: number) {
   await db.update(routines).set({ isActive: true }).where(eq(routines.id, routineId));
 }
 
-/** Copies a preset split into the user's routines and makes it active. Returns the new routine id. */
-export async function createRoutineFromPreset(presetKey: string): Promise<number> {
+/** Copies a preset split into the user's routines and (by default) makes it active. Returns the new routine id. */
+export async function createRoutineFromPreset(presetKey: string, activate = true): Promise<number> {
   const preset = getPreset(presetKey);
   if (!preset) throw new Error(`Unknown preset ${presetKey}`);
 
@@ -152,7 +160,7 @@ export async function createRoutineFromPreset(presetKey: string): Promise<number
     if (items.length) await db.insert(routineExercises).values(items);
   }
 
-  await setActiveRoutine(routine.id);
+  if (activate) await setActiveRoutine(routine.id);
   return routine.id;
 }
 
@@ -164,6 +172,7 @@ export async function createBlankRoutine(): Promise<number> {
 }
 
 export async function deleteRoutine(routineId: number) {
+  useSplit.getState().forget(routineId);
   const [deleted] = await db.delete(routines).where(eq(routines.id, routineId)).returning();
   // Keep one routine active if any remain.
   if (deleted?.isActive) {

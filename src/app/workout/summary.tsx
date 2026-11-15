@@ -1,10 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AnimatedLiftmarkMark } from '@/components/brand/AnimatedLiftmarkMark';
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { getWorkoutSummary, type WorkoutSummary } from '@/db/queries';
+import { useUpNext } from '@/hooks/useRoutines';
 import type { PrKind } from '@/features/progression';
 import { formatCompact, formatDuration, formatScore, formatSet, plural } from '@/lib/format';
 import { useProfile } from '@/stores/useProfile';
@@ -18,6 +20,7 @@ export default function WorkoutSummaryScreen() {
   const unit = useSettings((s) => s.unit);
   const bodyweightKg = useProfile((s) => s.profile?.weightKg);
   const [summary, setSummary] = useState<WorkoutSummary | null>(null);
+  const upNext = useUpNext();
 
   useEffect(() => {
     getWorkoutSummary(workoutId, bodyweightKg).then(setSummary).catch(console.error);
@@ -72,6 +75,26 @@ export default function WorkoutSummaryScreen() {
         </Card>
       ))}
 
+      {upNext && (
+        <Pressable
+          onPress={() => router.push('/routines/switch')}
+          accessibilityRole="button"
+          accessibilityHint="Pick a different split or day for next time"
+          style={({ pressed }) => [styles.next, pressed && { opacity: 0.7 }]}
+        >
+          <View style={{ flex: 1 }}>
+            <Text variant="caption" style={styles.nextKicker}>
+              NEXT SESSION · {upNext.routine.name.toUpperCase()}
+            </Text>
+            <Text variant="title">{upNext.day.name}</Text>
+          </View>
+          <View style={styles.change}>
+            <Ionicons name="swap-horizontal" size={16} color={colors.chalk} />
+            <Text style={{ fontWeight: '700' }}>Change split</Text>
+          </View>
+        </Pressable>
+      )}
+
       <Button title="Done" onPress={() => router.back()} />
       <Button
         title="View details"
@@ -109,4 +132,24 @@ const styles = StyleSheet.create({
   prRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   pr: { backgroundColor: colors.volt, borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 3 },
   prText: { color: colors.voltInk, fontWeight: '700' },
+  next: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    padding: space.lg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(198,244,50,0.35)',
+    backgroundColor: colors.surface,
+  },
+  nextKicker: { color: colors.volt, fontWeight: '700', letterSpacing: 1.2 },
+  change: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceRaised,
+  },
 });

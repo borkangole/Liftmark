@@ -8,6 +8,8 @@ import { AnimatedLiftmarkMark } from '@/components/brand/AnimatedLiftmarkMark';
 import { FoodTodayCard } from '@/components/food/FoodTodayCard';
 import { PlateauBroken } from '@/components/progress/PlateauBroken';
 import { FadeIn } from '@/components/motion/FadeIn';
+import { StepsCard } from '@/components/health/StepsCard';
+import { RecoveryCard } from '@/components/recovery/RecoveryCard';
 import { UpNextCard } from '@/components/routines/UpNextCard';
 import { WeekStrip } from '@/components/WeekStrip';
 import { Button, Card, PressableLink, Screen, Text } from '@/components/ui';
@@ -85,8 +87,16 @@ export default function TodayScreen() {
         </FadeIn>
       )}
 
+      <FadeIn delay={115}>
+        <RecoveryCard upNext={active ? null : upNext} />
+      </FadeIn>
+
       <FadeIn delay={130}>
         <FoodTodayCard />
+      </FadeIn>
+
+      <FadeIn delay={145}>
+        <StepsCard />
       </FadeIn>
 
       {routines.length > 0 && (

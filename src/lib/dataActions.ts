@@ -9,8 +9,10 @@ import { bodyweights, customFoods, exercises, foodEntries, routines, sets, worko
 import { buildCsv } from '@/features/export/csv';
 import { useActiveWorkout } from '@/stores/useActiveWorkout';
 import { usePlateaus } from '@/stores/usePlateaus';
+import { useReminders } from '@/stores/useReminders';
 import { useProfile } from '@/stores/useProfile';
 import { THEME_KEY, type ThemePreference } from '@/theme/tokens';
+import { clearReminders } from './reminders';
 
 /** Writes every logged set to a CSV in the cache folder and opens the share sheet. */
 export async function exportCsv(): Promise<{ rows: number }> {
@@ -40,6 +42,8 @@ export async function resetAllData() {
   await db.delete(customFoods);
   await db.update(exercises).set({ restSeconds: null }); // back to recommended rest
   usePlateaus.setState({ plans: {}, episodes: [], justBroken: null });
+  useReminders.setState({ announced: {}, pending: null });
+  await clearReminders().catch(() => {});
   useActiveWorkout.setState({
     exerciseIdsByWorkout: {},
     pairsByWorkout: {},

@@ -2,7 +2,7 @@
  * Liftmark's privacy policy, shown in-app (Settings → Privacy policy).
  * Keep docs/privacy.html (the public copy linked from the store listings) in sync.
  */
-export const PRIVACY_UPDATED = 'November 14, 2026';
+export const PRIVACY_UPDATED = 'November 15, 2026';
 
 export const PRIVACY_URL = 'https://borkangole.github.io/Repster---Your-progress-partner/privacy.html';
 
@@ -18,6 +18,19 @@ export const PRIVACY_SECTIONS: { title: string; body: string[] }[] = [
     body: [
       'Your profile (age, sex, height, weight, training goal and experience), your workouts, sets, routines, custom exercises, bodyweight weigh-ins, your food log and custom foods, and app settings.',
       'This is saved in a local database on your device. The developer has no server and cannot see, access or recover it.',
+    ],
+  },
+  {
+    title: 'Apple Health and Health Connect',
+    body: [
+      'Only if you connect it, Liftmark reads your steps, sleep and body weight from Apple Health (iPhone) or Health Connect (Android), and writes your finished workouts there. You choose which of these to allow, and can turn any of them off in Liftmark or in Apple Health / Health Connect.',
+      'This data is read on your phone and used only for features inside the app: your step count, calorie target, recovery map and weekly weigh-ins. It is never uploaded, sold, shared or used for advertising.',
+    ],
+  },
+  {
+    title: 'Notifications',
+    body: [
+      'Rest timer alerts and reminders are scheduled on your phone. Nothing about them is sent anywhere.',
     ],
   },
   {
