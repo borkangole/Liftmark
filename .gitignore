@@ -45,3 +45,8 @@ yarn-error.*
 screenshots/**/*.mp4
 screenshots/**/*.tgz
 screenshots/*.zip
+
+AGENTS.md
+CLAUDE.md
+LAUNCH.md
+.vscode/
